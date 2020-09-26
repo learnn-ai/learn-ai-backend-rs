@@ -1,0 +1,8 @@
+[package]
+name = "gene-pool-backend-rs"
+version = "0.1.0"
+authors = ["Blake Wyatt <blakewy@live.com>"]
+edition = "2018"
+
+[dependencies]
+rocket = { git = "https://github.com/SergioBenitez/Rocket" }
