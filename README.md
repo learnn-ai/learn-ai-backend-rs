@@ -1,4 +1,4 @@
-# Learn.ai Rust Backend
+# learn.ai Rust Backend
 
 Handles part of the Learn.ai backend. Responsible for calculating engagement scores for the largest face in each image.
 
