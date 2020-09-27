@@ -4,8 +4,8 @@ Handles part of the Learn.ai backend. Responsible for calculating engagement sco
 
 ## Overview
 
-- Send binary image via POST request endpoint
-- Sent through the Azure Face API
+- Sends binary image via POST request endpoint
+- Is sent through the Azure Face API
 - Parses all face detection data to Rust structs
 - Calculates an engagement score from many different features
 
