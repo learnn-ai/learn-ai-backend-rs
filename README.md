@@ -2,12 +2,20 @@
 
 Handles part of the Learn.ai backend. Responsible for calculating engagement scores for the largest face in each image.
 
-## Features
+## Overview
 
-- POST requests an image to the endpoint
-- Sends to the Azure Face API
-- Parses response to helpful, reusable Rust struct
-- Implements helpful functions such as calculating an engagement score for a face
+- Send binary image via POST request endpoint
+- Sent through the Azure Face API
+- Parses all face detection data to Rust structs
+- Calculates an engagement score from many different features
+
+## Engagement Score calculation
+
+![Engagement score](https://i.imgur.com/C3gUl0E.png)
+![Head yaw normalization](https://i.imgur.com/rEmVIMD.png)
+![Head pitch normalization](https://i.imgur.com/PBJuhVY.png)
+![Emotion normalization graph](https://i.imgur.com/ZYbeVfa.png)
+![Emotion normalization](https://i.imgur.com/odsZBSG.png)
 
 ## Building
 
