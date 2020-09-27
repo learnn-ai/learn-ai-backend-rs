@@ -1,5 +1,5 @@
 [package]
-name = "gene-pool-backend-rs"
+name = "learn-ai-backend-rs"
 version = "0.1.0"
 authors = ["Blake Wyatt <blakewy@live.com>"]
 edition = "2018"

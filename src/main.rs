@@ -7,8 +7,9 @@ use faces::Faces;
 
 use rocket::data::Data;
 use rocket_contrib::json::Json;
+use serde::{Serialize,Deserialize};
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct FaceResponse {
     engagement_score: usize
@@ -16,21 +17,12 @@ struct FaceResponse {
 
 #[post("/engagement/score", format = "image/*", data = "<image>")]
 async fn engagement_score(image: Data) -> Json<FaceResponse> {
-    // Obtain faces and attributes of image from Azure Face API
+    // Find the largest face in the image
     let faces = Faces::new(config::KEY, config::ENDPOINT, image).await.0;
-
-    // Determine closest face by bounding box area
-    let mut largest_face = None;
-    let mut largest_face_area: u32 = 0;
-    for face in faces.iter() {
-        let face_area = face.face_rectangle.get_area();
-        if face_area > largest_face_area {
-            largest_face = Some(face);
-            largest_face_area = face_area;
-        } 
-    }
+    let largest_face = faces.iter().max_by_key(|face|
+        face.face_rectangle.get_area());
     
-    // Calculate and return engagement score
+    // Calculate and return the engagement score
     match largest_face {
         Some(face) => Json(FaceResponse { engagement_score: face.engagement_score() }),
         None => Json(FaceResponse { engagement_score: 0 })

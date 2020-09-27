@@ -16,3 +16,6 @@ Cargo.lock
 
 # Irrelevant macOS meta file
 .DS_Store
+
+# private API config
+config.rs

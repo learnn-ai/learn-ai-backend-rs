@@ -1,14 +1,15 @@
 use rocket::data::{Data, ToByteUnit};
+use serde::{Serialize, Deserialize};
 use reqwest;
 
-// Image file size limit set at ~4 MB,
-// just below Azure Face API limit
+// Image file size limit set at ~4 MB, just below Azure Face API limit
 const IMAGE_SIZE_LIMIT: usize = 4000000;
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+// Alright, alright let's get all of the boilerplate out of the way...
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Faces(pub Vec<Face>);
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Face {
     pub face_id: String,
@@ -18,7 +19,7 @@ pub struct Face {
     pub recognition_model: String
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FaceRectangle {
     pub top: usize,
@@ -27,7 +28,7 @@ pub struct FaceRectangle {
     pub height: usize
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FaceLandmarks {
     pub pupil_left: Coordinate,
@@ -59,14 +60,14 @@ pub struct FaceLandmarks {
     pub under_lip_bottom: Coordinate
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Coordinate {
     pub x: f32,
     pub y: f32
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FaceAttributes {
     pub smile: f32,
@@ -85,7 +86,7 @@ pub struct FaceAttributes {
     pub hair: Hair
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HeadPose {
     pub pitch: f32,
@@ -93,7 +94,7 @@ pub struct HeadPose {
     pub yaw: f32
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FacialHair {
     pub moustache: f32,
@@ -101,7 +102,7 @@ pub struct FacialHair {
     pub sideburns: f32
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Emotion {
     pub anger: f32,
@@ -114,35 +115,35 @@ pub struct Emotion {
     pub surprise: f32
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Blur {
     pub blur_level: String,
     pub value: f32
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Exposure {
     pub exposure_level: String,
     pub value: f32
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Noise {
     pub noise_level: String,
     pub value: f32
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Makeup {
     pub eye_makeup: bool,
     pub lip_makeup: bool
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Accessory {
     #[serde(rename = "type")]
@@ -150,7 +151,7 @@ pub struct Accessory {
     pub confidence: f32
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Occlusion {
     pub forehead_occluded: bool,
@@ -158,7 +159,7 @@ pub struct Occlusion {
     pub mouth_occluded: bool
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Hair {
     pub bald: f32,
@@ -166,7 +167,7 @@ pub struct Hair {
     pub hair_color: Vec<HairColor>
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HairColor {
     pub color: String,
@@ -197,36 +198,42 @@ impl Faces {
             .send()
             .await.unwrap();
         
-        //println!("{}", res.text().await.unwrap());
-        //Faces(vec![])
+        // Serialize from JSON to Rust object with serde
         let faces: Vec<Face> = res.json().await.unwrap();
         Faces(faces)
     }
 }
 
 impl Face {
-    // Determine engagement by various face attributes
+    // Determine engagement by different features of the face
     pub fn engagement_score(&self) -> usize {
-        // smile: higher the value, the more likely you're engaged
-        // headpose: if you are not looking at the screen, you are distracted
-        // emotion: if neutral < 0.2, you are probably engaged
+        /* Feature Notes
+           smile: higher the value, the more likely you're engaged
+           headpose: if you are not looking at the screen, you are distracted
+           emotion: if neutral < 0.2, you are probably engaged
 
-        // roll is clockwise rotation around z 
-        // yaw is counter clockwise rotation around y -15 pitch look down, -10 look up at risk
-        // pitch is counter clockwise rotation around x from right view -6.6 yaw left, 11 yaw right are at risk
+           roll is clockwise rotation around z 
+           yaw is counter clockwise rotation around y -15 pitch look down, -10 look up at risk
+           pitch is counter clockwise rotation around x from right view -6.6 yaw left, 11 yaw right are at risk
+        */
 
+        // Head pose (current, lower_bound, upper_bound)
         let head_yaw: (f32, f32, f32) = (self.face_attributes.head_pose.yaw, -13.3, 11.0);
         let head_pitch: (f32, f32, f32) = (self.face_attributes.head_pose.pitch, -15.0, 0.3);
+        
+        // Head orientation prep work
         let yaw_divisor = head_yaw.1.abs()+head_yaw.2;
         let pitch_divisor = head_pitch.1.abs()+head_pitch.2;
         let yaw_zero_offset = (head_yaw.0-(head_yaw.2+head_yaw.1)/2.0).abs();
         let pitch_zero_offset = (head_pitch.0-(head_pitch.2+head_pitch.1)/2.0).abs();
+        
+        // Feature calculations and normalization
         let yaw_norm = 1.0-(yaw_zero_offset/yaw_divisor).min(1.0);
         let pitch_norm =  1.0-(pitch_zero_offset/pitch_divisor).min(1.0);
         let smile = self.face_attributes.smile;
-        let emotion = 1.0-((self.face_attributes.emotion.neutral*140.0+1.0).log(1.05)/100.0).min(1.0); // weight for < 0.2
+        let emotion = 1.0-((self.face_attributes.emotion.neutral*140.0+1.0).log(1.05)/100.0).min(1.0);
         
-        //println!("{} {} {} {} : {} {}", yaw_norm, pitch_norm, smile, emotion, head_yaw.0, head_pitch.0);
+        // engagement_score = w_1*y + w_2*p + w_3*s + w_4*e
         (yaw_norm*123.0 + pitch_norm*232.0 + smile*273.0 + emotion*52.0) as usize
     }
 }
